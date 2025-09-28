@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儀器合約注意事項生成器</title>
+    <style>
+        /* 網頁整體樣式 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        /* 容器 */
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        /* 標題 */
+        h1 {
+            text-align: center;
+            color: #004d99;
+            border-bottom: 3px solid #004d99;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* 表單樣式 */
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .input-group input[type="text"], 
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* 確保 padding 不會增加寬度 */
+            font-size: 16px;
+        }
+        
+        /* 按鈕 */
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* 結果區塊 (模擬文件輸出) */
+        #output {
+            margin-top: 40px;
+            padding: 30px;
+            border: 2px dashed #ccc;
+            background-color: #f9f9f9;
+            white-space: pre-wrap; /* 保留換行和空白 */
+            line-height: 1.8;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+        
+        /* 突顯變數 */
+        .highlight {
+            font-weight: bold;
+            color: #cc0000; /* 紅色突顯輸入的變數 */
+            background-color: #ffffe0; /* 淺黃色背景突顯 */
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            color: #004d99;
+            margin-top: 15px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>【儀器合約注意事項】網頁版生成器</h1>
+        
+        <form id="contractForm">
+            <div class="input-group">
+                <label for="orderNumber">訂購單編號:</label>
+                <input type="text" id="orderNumber" placeholder="請輸入訂購單編號" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="productName">儀器/設備 品名:</label>
+                <input type="text" id="productName" placeholder="例如：關節鏡" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="deliveryDate">交貨日:</label>
+                <input type="text" id="deliveryDate" placeholder="例如：114年12月8日" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="totalAmount">合約總金額 (僅輸入數字):</label>
+                <input type="number" id="totalAmount" placeholder="例如：191000" min="0" step="0.01" required>
+            </div>
+            
+            <button type="submit">生成合約注意事項</button>
+        </form>
+
+        <div id="output">
+            <p style="text-align: center; color: #888;">請輸入上方資訊並點擊按鈕生成文件</p>
+        </div>
+
+    </div>
+
+    <script>
+        // JavaScript 邏輯
+        document.getElementById('contractForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止表單預設提交行為
+            generateContract();
+        });
+
+        function formatCurrency(number) {
+            // 將數字格式化為帶有千位分隔符號和整數形式 (如圖片所示)
+            return number.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function generateContract() {
+            // 獲取輸入值
+            const orderNumber = document.getElementById('orderNumber').value;
+            const productName = document.getElementById('productName').value;
+            const deliveryDate = document.getElementById('deliveryDate').value;
+            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+
+            // 驗證總金額
+            if (isNaN(totalAmount) || totalAmount <= 0) {
+                document.getElementById('output').innerHTML = '<p style="color: red; text-align: center;">請輸入有效的合約總金額。</p>';
+                return;
+            }
+
+            // 計算履約保證金
+            const amount20Percent = totalAmount * 0.20;
+            const amount30Percent = totalAmount * 0.30;
+            
+            // 格式化計算結果
+            const formatted20 = formatCurrency(amount20Percent);
+            const formatted30 = formatCurrency(amount30Percent);
+
+            // 使用模板字串生成合約內容
+            const contractContent = `
+【儀器合約注意事項】
+訂單編單號：<span class="highlight">${orderNumber}</span>
+品名：<span class="highlight">${productName}</span>
+空白合約為 **一式兩份正本、一本副本** (副本僅需作前四頁即可)
+
+一、合約內容之 **品名、規格、數量(大寫)** 皆須填寫完整。
+二、**交貨期限** 需與請購單之 **約交日同日** 一致。約交日：<span class="highlight">${deliveryDate}</span>
+三、總價、保固年限需固定 **大寫** (壹、貳、參、肆、伍……)
+四、合約製作同時需付總價 **20%** 之 **履約保固金** (公司支票 **$ ${formatted20}**) 
+    **若無保證人** 其需支付總額 **30%** 履約保固金 (公司支票 **$ ${formatted30}**)
+    支票影本需浮貼於支票影本黏貼處，並檢附支票正本。
+五、兩份正本皆需貼印花 (各貼 12元，共 24元)。
+六、乙方、保證人皆需蓋公司大小章。
+七、若儀器無額外零配件，需於零配件表填寫 **「以下空白」**。
+八、廠商保密切結書需蓋公司大小章。
+九、合約內容需附報價單 (原報價日期及議價金額)、型錄 (影本可)、
+    授權書及衛署許可證。
+十、合約請裝訂完後再蓋騎縫章，若有修改請蓋小章。
+十一、外部人員保密切結書需業務本人親筆簽名或蓋章，勿僅是電子簽名。
+
+<span class="section-title">交機注意：</span>
+需提前一天通知以下三單位，以便點交及作帳。
+1. 補給組 2. 醫工組 3. 使用單位
+
+※於交機時，一併檢附該筆請購單之發票，如為電子發票，需將電子發票證明聯印出。
+請於交貨前完成合約簽訂謝謝～
+
+PS: 如有疑問請洽里捷採購組 - 林欣潔 (分機32083) (此欄位請手動修改)
+`;
+
+            // 將結果輸出到指定的 div
+            document.getElementById('output').innerHTML = contractContent;
+        }
+    </script>
+</body>
+</html>
